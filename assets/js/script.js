@@ -2,17 +2,30 @@ let titleEl = $("#taskT");
 let dueEl = $("#taskDD");
 let descEl = $("#taskC");
 let button = $("#btn");
+let toDo = $('#to-do');
+let deleteBtn = $('.swim-lanes')
 
 // Retrieve tasks and nextId from localStorage
-let taskList = JSON.parse(localStorage.getItem("tasks"));
+// let taskList = JSON.parse(localStorage.getItem("tasks"));
 // let nextId = JSON.parse(localStorage.getItem("nextId"));
 
 // Todo: create a function to generate a unique task id
 
 
 
-// Retrieve projects from localStorage and parse the JSON to an array
 
+function readTasksFromStorage() {
+    let tasks = [];
+    const savedTasks = JSON.parse(localStorage.getItem("tasks"));
+    if(savedTasks){
+    tasks=savedTasks;
+    }
+    return tasks;
+}
+
+function saveTasksToStorage(TaskObects){
+    localStorage.setItem("tasks",JSON.stringify(TaskObects));
+  }
 
 // Todo: create a function to create a task card DONEEEEEEEEEEEEEE
 function createTaskCard(task) {
@@ -20,7 +33,7 @@ function createTaskCard(task) {
     // creates the card
 const taskCard = $('<section>')
 taskCard.addClass('card task-card draggable my-3')
-taskCard.attr("data-project-id", task.id);
+taskCard.attr("data-task-id", task.id);
     //creates the title element
 const cardTitle = $('<h2>')
 cardTitle.addClass('task-card')
@@ -39,7 +52,7 @@ taskBody.addClass("card-body");
     //creates the delete button
 const deleteBtn = $("<button>");
 deleteBtn.addClass("btn btn-danger delete");
-deleteBtn.attr("data-project-id",task.id);
+deleteBtn.attr("data-task-id",task.id);
 deleteBtn.text("Delete");
 
 taskBody.append(cardContent, dueDate, deleteBtn)
@@ -74,11 +87,25 @@ function renderTaskList() {
         }
       }
 
+      $(".draggable").draggable({
+        opacity: 0.7,
+        zIndex: 100,
+        elper: function (e) {
+            const original = $(e.target).hasClass("ui-draggable")
+        ? $(e.target)
+        : $(e.target).closest(".ui-draggable");
+        return original.clone().css({
+            width: original.outerWidth(),
+          });
+        },
+      });
+
+
 }
 
 // Todo: create a function to handle deleting a task
 function handleDeleteTask(){
-    const taskId = $(this).attr("data-project-id");
+    const taskId = $(this).attr("data-task-id");
     const taskss = readTasksFromStorage();
 
     let idxToDel = -1; 
@@ -97,7 +124,30 @@ function handleDeleteTask(){
 
 // Todo: create a function to handle adding a new task MOSTLY DONE
 function handleAddTask(event){
-   
+   event.preventDefault();
+
+    const title = titleEl.val()
+    const dueDate = dueEl.val()
+    const content = descEl.val()
+
+    const newCard = {
+        id: crypto.randomUUID(),
+        title: title,
+        dueDate: dueDate,
+        content: content,
+        status: "to-do"
+    }
+    console.log(newCard)
+
+    const tasks = readTasksFromStorage();
+    tasks.push(newCard)
+
+    saveTasksToStorage(tasks);
+    renderTaskList()
+
+    titleEl.val('');
+    dueEl.val('');
+    descEl.val('');
     // let tasks = []
 
     // const savedTasks = JSON.parse(localStorage.getItem("tasks"));
@@ -118,8 +168,8 @@ function handleAddTask(event){
 
 // Todo: create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
-    const tasks = readProjectsFromStorage();
-    const taskId = ui.draggable[0].dataset.projectId;
+    const tasks = readTasksFromStorage();
+    const taskId = ui.draggable[0].dataset.taskId;
 
     const changeStatus = event.target.id;
 
@@ -142,3 +192,12 @@ button.on("click", handleAddTask);
 deleteBtn.on("click", ".delete", handleDeleteTask);
 
 
+$("#taskDD").datepicker({
+    changeMonth: true,
+    changeYear: true,
+  });
+
+  $(".lane").droppable({
+    accept: ".draggable",
+    drop: handleDrop,
+  });
