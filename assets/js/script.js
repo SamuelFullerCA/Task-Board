@@ -130,12 +130,13 @@ function handleDeleteTask(){
           console.log(taskss[i])
           idxToDel = i;
         }
+    }
 
     taskss.splice(idxToDel,1);
     saveTasksToStorage(taskss);
     renderTaskList()
 }
-}
+
 
 // Todo: create a function to handle adding a new task MOSTLY DONE
 function handleAddTask(event){
